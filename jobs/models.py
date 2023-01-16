@@ -7,7 +7,11 @@
 #   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
+import uuid
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser
+from django.conf import settings
+
 
 
 class AuditLogEntries(models.Model):
@@ -223,7 +227,6 @@ class Users(models.Model):
     phone_change = models.CharField(max_length=15, blank=True, null=True)
     phone_change_token = models.CharField(max_length=255, blank=True, null=True)
     phone_change_sent_at = models.DateTimeField(blank=True, null=True)
-    confirmed_at = models.DateTimeField(blank=True, null=True)
     email_change_token_current = models.CharField(unique=True, max_length=255, blank=True, null=True)
     email_change_confirm_status = models.SmallIntegerField(blank=True, null=True)
     banned_until = models.DateTimeField(blank=True, null=True)
@@ -232,4 +235,17 @@ class Users(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'auth.users'
+        db_table = 'auth\".\"users'
+# Define a default user
+
+class Profiles(AbstractBaseUser):
+    supabase_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True,null=True)
+    username = models.CharField(max_length=32, unique=True)
+    USERNAME_FIELD = 'username'
+
+
+class Jobs(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True)
+    company_name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    salary = models.PositiveIntegerField(blank=True,null=True)
